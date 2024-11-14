@@ -1,0 +1,96 @@
+<style>
+td {
+padding: 15px;
+}
+
+legend {
+font-variant: small-caps;
+font-weight: 850;
+font-size:22px;
+}
+</style>
+
+<meta charset='utf-8'>
+
+<input multiple type='file' id='aud'>
+<br>
+<button onclick='loadAud()'>Load files</button>
+<br><br>
+Loaded: <b id='output'>0</b> files
+
+
+<!--
+<audio id='channel1'>This browser does not support the audio element. Channel1</audio>
+<audio id='channel2'>This browser does not support the audio element. Channel2</audio>
+-->
+<br>
+<br>
+
+<table id='buttons'>
+<tr><td>FILE NAME</td><td>AUDIO ELEMENT</td><td>JAVASCRIPT AMPLIFICATION (0 ≤ x)</td></tr>
+</table>
+
+<script>
+window.dataURLs = [];
+window.gains = [];
+
+function loadAud() {
+  const Files = document.getElementById('aud').files;
+  for (const element of Files) {
+    const reader = new FileReader();
+    reader.onloadend = function() {
+      //handle the file when we have the data URL
+      //console.log(reader.result);
+	  
+
+
+	  window.dataURLs[element.name] = reader.result;
+      document.getElementById('buttons').innerHTML += `
+	  <tr>
+	  <td>${element.name}</td> 
+	  <td><audio controls id='${document.getElementById('output').innerHTML}' src=${reader.result}>Audio element not supported.</audio></td> <td><input type='number' oninput='window.gains[${document.getElementById('output').innerHTML}].amplify(this.value)' value='1' step='0.1' style='width:70px;'></td> 
+	  </tr>`;
+	  
+		//gain node
+	  window.gains[document.getElementById('output').innerHTML] = amplifyMedia(document.getElementById(document.getElementById('output').innerHTML), 0.5);
+	  
+	  //update counter
+      document.getElementById('output').innerHTML = parseInt(1) + parseInt(document.getElementById('output').innerHTML);
+	  
+    }
+    reader.readAsDataURL(element);  
+  }
+}
+
+/*
+function playAud(channelID, audioID) {
+	const name = 'channel' + channelID;
+	document.getElementById(name).src = window.dataURLs[audioID];
+	document.getElementById(name).load();
+	document.getElementById(name).play();
+}
+*/
+
+
+function amplifyMedia(mediaElem, multiplier = 1) {
+  var context = new (window.AudioContext || window.webkitAudioContext),
+      result = {
+        context: context,
+        source: context.createMediaElementSource(mediaElem),
+        gain: context.createGain(),
+        //rev: context.createConvolver(),
+        media: mediaElem,
+        amplify: function(multiplier) { result.gain.gain.value = multiplier; },
+		//reverb: function() {result.rev.buffer = 15;}
+      };
+  result.source.connect(result.gain);
+  result.gain.connect(context.destination);
+  //result.rev.connect(context.destination);
+  result.amplify(multiplier);
+  //result.reverb();
+  return result;
+}
+//thank you to https://stackoverflow.com/questions/10075909/how-to-set-the-loudness-of-html5-audio for the JS for amplification
+  
+</script>
+
