@@ -1,0 +1,155 @@
+<script>
+window.bank = {};
+window.assigned_ids = [];
+
+
+function uuidv4() {
+	var uuid = "10000000-1000-4000-8000-100000000000".replace(/[018]/g, c => (+c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> +c / 4).toString(16));
+	return `uuid_${uuid}`;
+}
+
+function uniqueID() {
+	var lock = true;
+	var new_id = -1;
+	while (lock) {
+		new_id = uuidv4();
+		lock = (window.assigned_ids.includes(new_id));
+	}
+	return new_id
+}
+
+function fade(divID, fadeTime, direction = "down") {
+    var sound = document.getElementById(divID).querySelector("audio");
+    var fadeAudio = setInterval(function () {
+		console.log(sound.volume);
+		console.log(sound.duration);
+		console.log(sound.currentTime);
+        try {
+            sound.volume += ((direction.includes("down") ? -1 : 1) * (1 / ((fadeTime * 1000) / 50)));
+        }
+        catch(error) {
+		    clearInterval(fadeAudio);
+			if (direction == "down/remove") {
+				sound.parentElement.remove();
+			}
+			if (direction.includes("down")) sound.volume = 0;
+			else sound.volume = 1;
+        }
+    }, 50);
+}
+
+
+function generateAudioElementAndPlay(dataURL, startMuted) {
+
+	div_id = uniqueID();
+	
+	div = document.createElement('div');
+	div.id = div_id;
+	div.innerHTML += "<button onclick='fade(this.parentElement.id, document.getElementById(`fade_in_time`).value, `up`)'>Fade up</button> <button onclick='fade(this.parentElement.id, document.getElementById(`fade_out_time`).value, `down`)'>Fade down</button> <button onclick='fade(this.parentElement.id, document.getElementById(`fade_out_time`).value, `down/remove`)'>Fade down AND stop</button> <button onclick='this.parentElement.remove()'>Stop/cut</button>";
+	
+	document.getElementById("audio_elements").appendChild(div);
+	
+
+    var sound      = document.createElement('audio');
+	sound.id       = 'audio-player';
+	sound.controls = 'controls';
+	sound.src      = dataURL;
+	if (startMuted) sound.volume = 0.0;
+	document.getElementById(div_id).appendChild(sound);
+	sound.play();
+	sound.addEventListener("ended", (e) => {
+		e.srcElement.parentElement.remove();
+	})
+	
+	return div_id;
+}
+
+
+function loadIntoBank() {
+  const Files = document.getElementById('aud').files;
+  for (const element of Files) {
+	console.log(element);
+	
+	cue_number = 1e+90;
+	cue_name = "";
+	cue_id = uniqueID();
+	console.log(window.cue_id);
+
+	if (element.name.split("__").length == 2) {
+		cue_number = parseFloat(element.name.split("__")[0]);
+		cue_name = element.name.split("__")[1];
+	} else {
+		cue_name = element.name;
+	}
+	
+	window.bank[cue_id] = {
+		name: cue_name,
+		number: cue_number,
+		reader: new FileReader(),
+		fileObj: element
+	}
+	document.getElementById("bank").innerHTML += `
+	<td>${cue_number}</td>
+	<td>${cue_name}</td>
+	<td>
+	<button onclick='playFromBank("${cue_id}")'>Start</button>
+	<button onclick='playerID = playFromBankFadeUp("${cue_id}")'>Start muted</button>
+	</td>`;
+  }
+}
+
+function playFromBank(uuid) {
+	reader = new FileReader();
+	reader.onloadend = function(e) {
+		generateAudioElementAndPlay(e.target.result, false);
+	}
+	reader.readAsDataURL(window.bank[uuid].fileObj);
+}
+
+function playFromBankFadeUp(uuid) {
+	reader = new FileReader();
+	reader.onloadend = function(e) {
+		player_ID = generateAudioElementAndPlay(e.target.result, true);
+		//fade(player_ID, document.getElementById("fade_in_time"), "up");
+	}
+	reader.readAsDataURL(window.bank[uuid].fileObj);
+}
+
+
+</script>
+
+<fieldset>
+Load files here (multi-select acceptable): <input multiple type='file' id='aud'> <button onclick='loadIntoBank()'>Load!</button>
+</fieldset>
+
+<br>
+
+<fieldset>
+<h4>Currently being played</h4>
+<div id='audio_elements'>
+
+
+
+
+
+</div>
+</fieldset>
+
+<div id='bankdiv'>
+<h4>Cues</h4>
+	<table id='bank'>
+		<tr>
+			<td>Cue #</td>
+			<td>Filename</td>
+			<td>Actions</td>
+		<tr>
+	</table>
+
+</div>
+
+<div id='settings'>
+<hr>
+<h4>Settings</h4>
+Default fade up time (s): <input id='fade_in_time' value='2.5'>
+Default fade down time (s): <input id='fade_out_time' value='1.75'>
+</div>
