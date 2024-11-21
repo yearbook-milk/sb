@@ -94,6 +94,7 @@ function loadIntoBank() {
 	<td>
 	<button onclick='playFromBank("${cue_id}")'>Start</button>
 	<button onclick='playerID = playFromBankFadeUp("${cue_id}")'>Start muted</button>
+    <button onclick='document.getElementById("audio_elements").innerHTML = ""; playFromBank("${cue_id}");'>Cut current FX and start</button>
 	</td>`;
   }
 }
