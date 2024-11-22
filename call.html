@@ -1,0 +1,510 @@
+<style>
+body{
+font-family: "Segoe UI", sans-serif;
+background-color: #222;
+}
+
+button,select,input,textarea {
+font-family: "SimHei", sans-serif;
+background-color: #555;
+color: white;
+}
+
+button {
+border: 1px solid none;
+}
+
+button:hover,input:hover,select:hover {
+border: 2px solid yellow;
+}
+
+p,b {
+color: white;
+}
+
+.display {
+color: white;
+display: inline;
+}
+
+b {
+font-size: 24px;
+}
+
+
+
+
+
+
+</style>
+<meta charset="utf-8">
+
+
+
+<div id='beforeconnect'>
+<i class='display'></i>
+<div id='connection' style='border: 1px solid none'>
+<b style='font-variant: small-caps'></b><br>
+
+<p class='display'>URL</p> <input id='url' value='wss://bp22.charleshu.repl.co'> <p class='display'>("wss://...")</p><br>
+<p class='display'>CID&nbsp;&nbsp;&nbsp;</p>
+<select id="val1"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option></select>
+<select id="val2"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option></select>
+<select id="val3"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option></select>
+<select id="val4"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="A">A</option><option value="B">B</option><option value="C">C</option><option value="D">D</option><option value="E">E</option><option value="F">F</option></select>
+</select>
+
+<br>
+<p class='display'>Name</p> <input id='alias' value='Anon'> 
+<br><br>
+
+<p class='display' style='white-space:pre;'>
+</p>
+
+<br><br> <button id='gosocket' onclick='gosocket()'>Connect</button>
+<p id='preport' style='display:inline;'> </p>
+<br><br> <fieldset id='estopbox' hidden style='background: #000;'><b>Automatic Connection</b> <p></p><button id='emergencystopauto' style='background-color:red;color:white' onclick='for (var i=0; i<timeouts.length; i++) {clearTimeout(timeouts[i]); document.getElementById("preport").innerHTML = "Stopped.";}'>Cancel</button></fieldset>
+
+</div>
+</div>
+
+<br>
+
+
+<div id='afterconnect' hidden>
+<p hidden id='notification' style='background-color: #333'></p>
+<p hidden id='dataout' style='background-color: #333'></p>
+
+<p hidden class='display'><p id='channel' hidden class='display' style='font-style: oblique;'>undefined</p><br></p>
+
+<p class="display">Mute <input id='mute' type='checkbox' checked>&nbsp;</p>
+<p class="display">Deaf <input id='deaf' type='checkbox'><br></p>
+
+<br>
+<button style='background-color: red;' onclick='window.userinitiated = true; window.socket.send("DN"+window.universalChannel+document.getElementById("alias").value);'>Disconnect</button>
+<p class='display'></p><br><br>
+<button href='javascript:void(0)' onclick='document.getElementById("audio").style.display = "block"'>Settings</button>
+<button href='javascript:void(0)' onclick='document.getElementById("playsound").style.display = "block"'>Dispatch</button>
+<button onclick=' var sounds = document.getElementsByTagName("audio"); for(i=0; i<sounds.length; i++) sounds[i].pause();'>Silence all backlogged packets</button><br>
+
+<div id='audio'  style='width:100%;height:100%;background:black;position:fixed;top:0;left:0;' hidden>
+
+<b style='font-variant: small-caps'>Mic select</b><br>
+<p id='inputs' style='display:inline;'>
+...</p><br><br>
+<p class="display">Choose:</p> <input style='width: 35px;' id='aids' value='0'><br><br><br>
+
+<b style='font-variant: small-caps'>Volume</b><br>
+<input id='vol' style='width: 65px;' value='1.0'> <p class="display">(float 0.0 < x <= 1.0)</p>
+<br><br>
+
+<b style='font-variant: small-caps'>transmitpacket() interval</b><br>
+<input id='interval' style='width: 65px;' value='420'> <p class="display">(int ms)</p>
+<br><br>
+
+
+
+<b style='font-variant: small-caps'>Audio speed</b><br>
+ <input type="range" min="0.01" max="2.0" value="1.00" step="0.01" id="gapfill"> <p class='display'>(float 0.01 < x < 2.00)</p>
+ <br>
+ <br>
+
+<b style='font-variant: small-caps'>Gain value</b><br>
+ <input id="gainval" value="2"> <p class='display'>(float x ≠ 0)</p>
+ <br>
+ <br>
+
+<b style='font-variant: small-caps'>transmitpacket()</b><br>
+<button onclick='transmitpacket()'>start transmitpacket()</button><br><br>
+
+
+<br>
+<br>
+
+<br><button onclick='document.getElementById("audio").style.display = "none";'>Exit menu</button>
+</div>
+
+
+
+<div id='playsound' hidden style='width:100%;height:100%;background:black;position:fixed;top:0;left:0;'><br>
+
+<b style='font-variant: small-caps'>Dispatch</b><br>
+<button onclick='recordthentx()' style='background-color: green'>START</button>&nbsp;<button style='background-color: purple' id='stoprecording'>STOP/TX</button>
+<br><b style='font-variant: small-caps'></b><br>
+
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"1")'>1 </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"2")'>2 </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"3")'>3 </button><br>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"4")'>4 </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"5")'>5 </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"6")'>6 </button><br>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"7")'>7 </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"8")'>8 </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"9")'>9 </button><br>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"*")'>* </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"0")'>0 </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"#")'># </button><br>
+<br>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"A")'>A </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"B")'>B </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"C")'>C </button><br>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"D")'>D </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"E")'>E </button>
+<button style='width:50;height:50;font:18px Arial;'onclick='window.socket.send("AX"+window.universalChannel+"F")'>F </button><br>
+<br><button onclick='document.getElementById("playsound").style.display = "none";'>Exit menu</button>
+
+</div>
+
+
+
+
+<script id='networkoperations'>
+  var users = []
+
+// fill in the slot
+const urlParams = new URLSearchParams(window.location.search);
+var predef = urlParams.get('channel')
+var prename = urlParams.get('name')
+var auto = urlParams.get('auto')
+
+if (predef == null) {
+var predef = 'ok';
+}
+if (prename != null) {
+document.getElementById('alias').value = prename;
+}
+if (auto == '1') {
+var timeouts = [];
+document.getElementById('estopbox').style.display = 'block';
+timeouts.push(setTimeout(() => { document.getElementById('preport').innerHTML = '4'}, 0));
+timeouts.push(setTimeout(() => { document.getElementById('preport').innerHTML = '3'}, 1000));
+timeouts.push(setTimeout(() => { document.getElementById('preport').innerHTML = '2'}, 2000));
+timeouts.push(setTimeout(() => { document.getElementById('preport').innerHTML = '1'}, 3000));
+timeouts.push(setTimeout(() => { document.getElementById('preport').innerHTML = 'Automatically initiating connection...'; document.getElementById('gosocket').click();}, 4000));
+
+}
+
+if (predef.length == 4) {
+document.getElementById('val1').value = predef.slice(0,1)
+document.getElementById('val2').value = predef.slice(1,2)
+document.getElementById('val3').value = predef.slice(2,3)
+document.getElementById('val4').value = predef.slice(3,4)
+}
+// get all inputs
+navigator.mediaDevices.enumerateDevices().then((devices) => {
+to = ""
+window.aiid = devices;
+ for (var i=0; i<devices.length; i++) {
+ if (devices[i].kind == 'audioinput') {
+ to = to + i + ' ' + devices[i].label + '<br>'
+ }}
+
+document.getElementById('inputs').innerHTML = to;
+})
+
+
+// Create WebSocket connection.
+function getchannel() {
+var taken = document.getElementById('val1').value+document.getElementById('val2').value+document.getElementById('val3').value+document.getElementById('val4').value
+if (taken.length == 4) { return taken } else { return predef }
+}
+
+window.universalChannel = getchannel()
+
+function gosocket() {
+
+if (document.getElementById('alias').value.length >= 99) {
+document.getElementById('preport').innerHTML = '1 < 名字长度 < 99'
+return none
+
+}
+window.userinitiated = false;
+document.getElementById('preport').innerHTML = 'Connecting to wss:// server...'
+window.socket = new WebSocket(document.getElementById('url').value);
+
+
+// Connection opened
+window.socket.addEventListener('open', function (event) {
+  document.getElementById('beforeconnect').style.display = 'none'
+  document.getElementById('afterconnect').style.display = 'block'
+    alias = document.getElementById('alias').value
+
+  document.getElementById('channel').innerHTML = '';
+
+
+    socket.send('CN'+window.universalChannel+alias);
+  transmitpacket();
+});
+
+// Listen for messages
+window.socket.addEventListener('message', function (event) {
+    console.log('Message from server:', event.data.slice(0,100));
+  opcode = event.data.slice(0,2)
+  channel = event.data.slice(2,6)
+  namelen = event.data.slice(6,8)
+  name = event.data.slice(8, 8+parseInt(namelen))
+  content = event.data.slice(8+parseInt(namelen))
+  //console.log('Packet info:'+opcode+' '+channel+' '+namelen+' '+name)
+
+  if (event.data.slice(0,2) == 'RL') {
+  /*	if (users.includes(name) == false) {
+  users.push(name)
+  }
+  document.getElementById('dataout').innerHTML = 'opcode: RL, person: '+name+', connection history: '+users
+  */
+  playSound(content);
+
+  }
+    else if (event.data.slice(0,2) == 'UR') {
+  /*
+    if (users.includes(name) == false) {
+  users.push(name)
+  }
+  */
+document.getElementById('dataout').innerHTML = 'opcode: UR (pointer to other audio data), source: '+name
+  playExtSound(content);
+  }
+
+
+  else if (event.data.slice(0,2) == 'NU') {
+  var a = new Audio('4beep.mp3');
+a.play()
+document.getElementById('notification').innerHTML = 'A new user has joined: '+event.data.slice(2)
+  }
+  else if (event.data.slice(0,2) == 'DU') {
+  var a = new Audio('fourbeeperror.mp3');
+a.play()
+document.getElementById('notification').innerHTML = 'Someone has disconnected: '+event.data.slice(2)
+  }
+
+  else if (event.data.slice(0,2) == 'AD') {
+//anon. redirect request
+console.log('[REDIRECT]')
+let isExecuted = confirm("Other user requests you transfer channels: "+event.data.slice(2,6)+'->'+event.data.slice(6,10));
+if (isExecuted) {
+window.socket.send('RN'+window.universalChannel+event.data.slice(6,10))
+window.universalChannel = event.data.slice(6,10)
+//document.getElementById('channel').innerHTML = 'You are in channel '+window.universalChannel + ' as '+alias+'.'
+}
+  }
+
+
+    else {
+  /*
+    if (users.includes(name) == false) {
+  users.push(name)
+  }
+  */
+document.getElementById('dataout').innerHTML = 'opcode: '+event.data.slice(0,2) +' (custom operation), details: '+event.data
+  }
+
+
+
+});
+
+// on socket shutdown
+window.socket.addEventListener('close', function (event) {
+var a = new Audio('suddendc.mp3');
+
+a.play()
+    console.log('Socket closed down.');
+  document.getElementById('beforeconnect').style.display = 'block'
+  document.getElementById('afterconnect').style.display = 'none'
+  if (window.userinitiated == false) {
+  document.getElementById('beforeconnect').innerHTML = '<p class="display">Connection broken: system failure ['+event.code+']'
+  } else {
+    document.getElementById('beforeconnect').innerHTML = '<p class="display">Connection broken: user initiated ['+event.code+']';
+  }
+  //alert("The connection to the ws:// server failed.")
+});
+
+window.socket.addEventListener('error', function (event) {
+  console.log('WebSocket error: ', event);
+  //document.getElementById('error').innerHTML = event;
+});
+
+
+}
+
+
+function playURL(url) {
+alias = document.getElementById('alias').value
+  tolen = '000000'+alias.length.toString()
+  tolen = tolen.slice(-2)		
+  window.socket.send('UR'+window.universalChannel+tolen+alias+url);
+}
+
+function playSound(url) {
+if (document.getElementById('deaf').checked == false) {
+    var a = new Audio('data:audio/webm; codecs=opus;base64,'+url);
+  a.playbackRate = document.getElementById('gapfill').value;
+  try {
+  a.preservesPitch = false;
+  } catch (e) {
+  console.log('preservespitch not supported')
+  }
+  //a.controls = true;
+  document.body.appendChild(a);
+  a.addEventListener("ended", function(){
+   document.body.removeChild(a);
+  a = null;
+});
+  a.volume = document.getElementById('vol').value;
+
+
+  //TURN THE GAIN UP A LOT
+  // create an audio context and hook up the video element as the source
+    var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var source = audioCtx.createMediaElementSource(a);
+
+    // create a gain node
+    var gainNode = audioCtx.createGain();
+    gainNode.gain.value = document.getElementById("gainval").value; // double the volume
+    source.connect(gainNode);
+
+    // connect the gain node to an output destination
+    gainNode.connect(audioCtx.destination);
+
+    a.play();
+  } else {
+  console.log('this user is deafened')
+  }
+}
+function playExtSound(url) {
+if (true) {
+    var a = new Audio(url);
+  console.log('[extsound] playing '+url)
+  //a.controls = true;
+  document.body.appendChild(a);
+  a.addEventListener("ended", function(){
+     document.body.removeChild(a);
+   a = null;
+});
+  a.volume = document.getElementById('vol').value;
+    a.play();
+  } else {
+  console.log('[extsound] this user is deafened')
+  }
+}
+
+
+function transmitpacket() {
+//start the stream
+index = document.getElementById('aids').value;
+
+constraints = 
+ {
+  audio: { 
+  deviceId: window.aiid[index].deviceId, 
+  noiseSuppression: false, 
+  echoCancellation: false, 
+  autoGainControl: false 
+  }
+}
+
+navigator.mediaDevices.getUserMedia(constraints)
+  .then(stream => {
+    const mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.start();
+  var reader = new FileReader();
+    const audioChunks = [];
+    mediaRecorder.addEventListener('dataavailable', event => {
+      audioChunks.push(event.data);
+    });
+
+//choose an event to stop the stream	
+  //document.getElementById('txmsg').addEventListener('click', function() { mediaRecorder.stop() });
+  setTimeout(function(){mediaRecorder.stop()}, document.getElementById('interval').value);
+
+//what happens on stream stop
+    mediaRecorder.addEventListener('stop', () => {
+      console.log('finished, encoding...');
+    var aublob = new Blob(audioChunks, { 'type' : 'audio/webm; codecs=opus' })
+    var audurl = window.URL.createObjectURL(aublob);
+    console.log('blob URL: ' + audurl);
+    reader.readAsDataURL(aublob);
+
+    reader.onload =  function(e){
+          console.log(e.target.result.replace('data:audio/webm; codecs=opus;base64,','').length);
+      var burl =  e.target.result.replaceAll('+','+');
+      burl = burl.replace('data:audio/webm; codecs=opus;base64,','')
+      console.log(burl.slice(0,50) + '...' + burl.slice(-50))
+      //here we have the audio data and we can do as we please with this
+
+      //in this case we transmit it over the socket
+      if (document.getElementById('mute').checked == false) {
+      alias = document.getElementById('alias').value
+
+            tolen = '000000'+alias.length.toString()
+      tolen = tolen.slice(-2)
+
+      console.log('transmitting... via'+window.universalChannel)
+      window.socket.send('RL'+window.universalChannel+tolen+alias+burl);
+      transmitpacket();
+      } else {
+      console.log('this user is muted')
+      transmitpacket();
+      }
+
+}
+
+
+}); //mediarecorder stop set 
+}) //end navi.media...
+} // close function
+
+
+function recordthentx() {
+//start the stream
+index = document.getElementById('aids').value;
+navigator.mediaDevices.getUserMedia({ audio: {deviceId: window.aiid[index].deviceId} })
+  .then(stream => {
+    const mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.start();
+  var reader = new FileReader();
+    const audioChunks = [];
+    mediaRecorder.addEventListener('dataavailable', event => {
+      audioChunks.push(event.data);
+    });
+
+//choose an event to stop the stream	
+  //document.getElementById('txmsg').addEventListener('click', function() { mediaRecorder.stop() });
+  document.getElementById('stoprecording').onclick = function(){mediaRecorder.stop()};
+
+//what happens on stream stop
+    mediaRecorder.addEventListener('stop', () => {
+      console.log('[rec] finished, encoding...');
+    var aublob = new Blob(audioChunks, { 'type' : 'audio/webm; codecs=opus' })
+    var audurl = window.URL.createObjectURL(aublob);
+    console.log('[rec] blob URL: ' + audurl);
+    reader.readAsDataURL(aublob);
+
+    reader.onload =  function(e){
+          console.log(e.target.result.replace('data:audio/webm; codecs=opus;base64,','').length);
+      var burl =  e.target.result.replaceAll('+','+');
+      burl = burl.replace('data:audio/webm; codecs=opus;base64,','')
+      console.log(burl.slice(0,50) + '...' + burl.slice(-50))
+      //here we have the audio data and we can do as we please with this
+
+      //in this case we transmit it over the socket
+      if (true) {
+      console.log('[rec] transmitting...')
+
+      alias = document.getElementById('alias').value
+      tolen = '000000'+alias.length.toString()
+      tolen = tolen.slice(-2)
+
+      window.socket.send('RL'+window.universalChannel+tolen+alias+burl);
+      transmitpacket();
+      } else {
+      console.log('[rec] this user is muted')
+      }
+
+}
+
+
+}); //mediarecorder stop set 
+})
+}
+
+</script>
